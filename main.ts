@@ -215,76 +215,58 @@ async function writeLectureCanvas(opts: {
 	new Notice(`Lecture canvas created: ${canvasPath}`);
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+
+export default class LectureCanvasPlugin extends Plugin {
+	settings: LectureCanvasSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		// Quick create ribbon
+		const ribbon = this.addRibbonIcon('presentation', 'Create lecture canvas', (evt: MouseEvent) => {
+			this.launchPrompt();
 		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		ribbon.addClass('lecture-canvas-ribbon');
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		// Status bar
+		const statusBar = this.addStatusBarItem();
+		statusBar.setText('Lecture Canvas Ready');
 
-		// This adds a simple command that can be triggered anywhere
+		// Command for creating a lecture canvas
 		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			}
+			id: 'lecture-create-canvas',
+			name: 'Lecture: Create canvas from template',
+			callback: () => this.launchPrompt(),
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		// Settings tab
+		this.addSettingTab(new LectureSettingTab(this.app, this));
 	}
 
 	onunload() {
 
+	}
+
+	private launchPrompt() {
+		new LecturePrompt(
+			this.app,
+			{ course: this.settings.defaultCourse },
+			async ({ course, title, dateISO }) => {
+				try {
+					await writeLectureCanvas({
+						app: this.app,
+						settings: this.settings,
+						title,
+						course,
+						dateISO,
+					});
+				} catch (e) {
+					console.error(e);
+					new Notice("Failed to create lecture canvas.");
+				}
+			}
+		).open();
 	}
 
 	async loadSettings() {
@@ -296,44 +278,83 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class LectureSettingTab extends PluginSettingTab {
+	plugin: LectureCanvasPlugin;
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: LectureCanvasPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
 		const {containerEl} = this;
-
 		containerEl.empty();
+		containerEl.createEl("h2", { text: "Lecture Canvas Settings" });
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+			.setName("Root folder")
+			.setDesc("Lectures will be created under this path")
+			.addText((t) =>
+				t
+					.setPlaceholder("Lectures")
+					.setValue(this.plugin.settings.rootFolder)
+					.onChange(async (v) => {
+						this.plugin.settings.rootFolder = v.trim() || "Lectures";
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Default course")
+			.setDesc("Optional course code prefilled in the prompt")
+			.addText((t) =>
+				t
+					.setPlaceholder("ECE2711")
+					.setValue(this.plugin.settings.defaultCourse)
+					.onChange(async (v) => {
+						this.plugin.settings.defaultCourse = v.trim();
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Require Excalidraw")
+			.setDesc("Warn if Excalidraw plugin isn’t enabled")
+			.addToggle((tg) =>
+				tg.setValue(this.plugin.settings.excalidrawCheck).onChange(async (v) => {
+					this.plugin.settings.excalidrawCheck = v;
 					await this.plugin.saveSettings();
-				}));
+				})
+			);
+
+		containerEl.createEl("h3", { text: "Canvas Node Layout" });
+
+		const dim = (label: string, obj: { x: number; y: number; width: number; height: number }, onSave: () => Promise<void>) => {
+			const wrap = containerEl.createEl("div", { cls: "lecture-dims" });
+			wrap.createEl("div", { text: label, attr: { style: "font-weight:600;margin-top:8px;" } });
+
+			const mkNum = (name: keyof typeof obj) =>
+				new Setting(wrap)
+					.setName(name.toString())
+					.addText((t) =>
+						t
+							.setPlaceholder(obj[name].toString())
+							.setValue(String(obj[name]))
+							.onChange(async (v) => {
+								const n = Number(v);
+								if (!Number.isNaN(n)) (obj as any)[name] = n;
+								await onSave();
+							})
+					);
+
+			mkNum("x");
+			mkNum("y");
+			mkNum("width");
+			mkNum("height");
+		};
+
+		dim("Excalidraw", this.plugin.settings.node.excalidraw, () => this.plugin.saveSettings());
+		dim("Slides", this.plugin.settings.node.slides, () => this.plugin.saveSettings());
+		dim("Metadata block", this.plugin.settings.node.meta, () => this.plugin.saveSettings());
 	}
 }
