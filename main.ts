@@ -19,9 +19,9 @@ const DEFAULT_SETTINGS: LectureCanvasSettings = {
 	defaultCourse: "",
 	excalidrawCheck: true,
 	node: {
-		excalidraw: { x: 0, y: 0, width: 800, height: 600 },
-		slides: { x: 0, y: 0, width: 600, height: 600 },
-		meta: { x: 0, y: 0, width: 1450, height: 200 },
+		excalidraw: { x: 650, y: 350, width: 800, height: 600 },
+		slides: { x: 0, y: 350, width: 600, height: 600 },
+		meta: { x: 0, y: 0, width: 1450, height: 300 },
 	},
 }
 
@@ -154,6 +154,7 @@ async function writeLectureCanvas(opts: {
 	const excalidrawPath = `${folder}/notes.excalidraw`;
 	await createEmptyFile(app, excalidrawPath);
 
+
 	const slidesPath = `${folder}/slides.pdf`; // user replaces later
 
 	const metaPath = `${folder}/_meta.md`;
@@ -195,7 +196,7 @@ async function writeLectureCanvas(opts: {
 				type: "text",
 				text: `# ${title}\n**Course:** ${course}\n**Date:** ${dateISO}\n\n- Click the Excalidraw node to start handwriting\n- Replace slides.pdf with your deck\n- Metadata: [[${metaPath}]]`,
 				...settings.node.meta,
-				color: "1",
+				//color: "1",
 			},
 		],
 		edges: [],
