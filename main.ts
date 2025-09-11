@@ -151,7 +151,7 @@ async function writeLectureCanvas(opts: {
 	await ensureFolder(app, folder);
 
 	// Files
-	const excalidrawPath = `${folder}/notes.excalidraw`;
+	const excalidrawPath = `${folder}/notes.excalidraw.md`;
 	await createEmptyFile(app, excalidrawPath);
 
 
