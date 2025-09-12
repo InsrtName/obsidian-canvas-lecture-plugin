@@ -68,136 +68,6 @@ async function createEmptyFile(app: App, path: string): Promise<TFile> {
 	return app.vault.create(path, "");
 }
 
-// Seed a valid Excalidraw **Markdown** drawing (.excalidraw.md)
-async function createExcalidrawMarkdown(
-	app: App,
-	path: string,
-	title: string,
-	subtitle: string
-): Promise<TFile> {
-	const now = Date.now();
-	const payload = {
-		type: "excalidraw",
-		version: 2,
-		source: "obsidian-excalidraw-plugin",
-		elements: [
-			{
-				id: uuid(),
-				type: "rectangle",
-				x: 80,
-				y: 60,
-				width: 520,
-				height: 110,
-				angle: 0,
-				strokeColor: "#1e1e1e",
-				backgroundColor: "#ffd6a5",
-				fillStyle: "solid",
-				strokeWidth: 1,
-				strokeStyle: "solid",
-				roughness: 1,
-				opacity: 100,
-				groupIds: [],
-				roundness: { type: 3, value: 8 },
-				seed: now & 0x7fffffff,
-				version: 1,
-				versionNonce: (now + 1) & 0x7fffffff,
-				isDeleted: false,
-				boundElements: null,
-				updated: now,
-			},
-			{
-				id: uuid(),
-				type: "text",
-				x: 100,
-				y: 80,
-				width: 480,
-				height: 38,
-				angle: 0,
-				strokeColor: "#000000",
-				backgroundColor: "transparent",
-				fillStyle: "solid",
-				strokeWidth: 1,
-				strokeStyle: "solid",
-				roughness: 0,
-				opacity: 100,
-				groupIds: [],
-				roundness: null,
-				seed: (now + 2) & 0x7fffffff,
-				version: 1,
-				versionNonce: (now + 3) & 0x7fffffff,
-				isDeleted: false,
-				boundElements: null,
-				updated: now,
-				text: `📓 ${title}`,
-				fontSize: 32,
-				fontFamily: 1,
-				textAlign: "left",
-				verticalAlign: "top",
-				containerId: null,
-				originalText: `📓 ${title}`,
-				lineHeight: 1.25,
-			},
-			{
-				id: uuid(),
-				type: "text",
-				x: 100,
-				y: 120,
-				width: 360,
-				height: 28,
-				angle: 0,
-				strokeColor: "#444444",
-				backgroundColor: "transparent",
-				fillStyle: "solid",
-				strokeWidth: 1,
-				strokeStyle: "solid",
-				roughness: 0,
-				opacity: 100,
-				groupIds: [],
-				roundness: null,
-				seed: (now + 4) & 0x7fffffff,
-				version: 1,
-				versionNonce: (now + 5) & 0x7fffffff,
-				isDeleted: false,
-				boundElements: null,
-				updated: now,
-				text: subtitle,
-				fontSize: 22,
-				fontFamily: 1,
-				textAlign: "left",
-				verticalAlign: "top",
-				containerId: null,
-				originalText: subtitle,
-				lineHeight: 1.25,
-			},
-		],
-		appState: {
-			gridSize: 20,
-			viewBackgroundColor: "#ffffff",
-			scrollX: 0,
-			scrollY: 0,
-			zoom: { value: 1 },
-		},
-		files: {},
-	};
-
-	const md = [
-		"---",
-		"excalidraw-plugin: parsed",
-		"---",
-		"",
-		"```excalidraw",
-		JSON.stringify(payload, null, 2),
-		"```",
-		"",
-	].join("\n");
-
-	const existing = app.vault.getAbstractFileByPath(path);
-	if (existing instanceof TFile) {
-		await app.vault.modify(existing, md);
-		return existing;
-	}
-	return app.vault.create(path, md);
-}
 async function createExcalidrawJSON(
 	app: App,
 	path: string,
@@ -209,45 +79,17 @@ async function createExcalidrawJSON(
 		type: "excalidraw",
 		version: 2,
 		source: "obsidian-excalidraw-plugin",
-		elements: [
-			{
-				id: uuid(), type: "rectangle", x: 80, y: 60,
-				width: 520, height: 110, angle: 0,
-				strokeColor: "#1e1e1e", backgroundColor: "#ffd6a5",
-				fillStyle: "solid", strokeWidth: 1, strokeStyle: "solid",
-				roughness: 1, opacity: 100, groupIds: [],
-				roundness: { type: 3, value: 8 },
-				seed: now & 0x7fffffff, version: 1, versionNonce: (now+1) & 0x7fffffff,
-				isDeleted: false, boundElements: null, updated: now
-			},
-			{
-				id: uuid(), type: "text", x: 100, y: 80,
-				width: 480, height: 38, angle: 0,
-				strokeColor: "#000", backgroundColor: "transparent",
-				fillStyle: "solid", strokeWidth: 1, strokeStyle: "solid",
-				roughness: 0, opacity: 100, groupIds: [], roundness: null,
-				seed: (now+2) & 0x7fffffff, version: 1, versionNonce: (now+3) & 0x7fffffff,
-				isDeleted: false, boundElements: null, updated: now,
-				text: `📓 ${title}`, fontSize: 32, fontFamily: 1,
-				textAlign: "left", verticalAlign: "top", containerId: null,
-				originalText: `📓 ${title}`, lineHeight: 1.25
-			},
-			{
-				id: uuid(), type: "text", x: 100, y: 120,
-				width: 360, height: 28, angle: 0,
-				strokeColor: "#444", backgroundColor: "transparent",
-				fillStyle: "solid", strokeWidth: 1, strokeStyle: "solid",
-				roughness: 0, opacity: 100, groupIds: [], roundness: null,
-				seed: (now+4) & 0x7fffffff, version: 1, versionNonce: (now+5) & 0x7fffffff,
-				isDeleted: false, boundElements: null, updated: now,
-				text: subtitle, fontSize: 22, fontFamily: 1,
-				textAlign: "left", verticalAlign: "top", containerId: null,
-				originalText: subtitle, lineHeight: 1.25
-			}
-		],
-		appState: { gridSize: 20, viewBackgroundColor: "#ffffff", scrollX: 0, scrollY: 0, zoom: { value: 1 } },
+		elements: [],
+		appState: {
+			gridSize: null,
+			viewBackgroundColor: "#ffffff",
+			scrollX: 0,
+			scrollY: 0,
+			zoom: { value: 1 }
+		},
 		files: {}
 	};
+
 
 	const json = JSON.stringify(payload, null, 2);
 	const existing = app.vault.getAbstractFileByPath(path);
@@ -314,7 +156,7 @@ async function clickExcalidrawButtons(app: App, filePath: string) {
 	// Open the file in a leaf so commands have context
 	const leaf = app.workspace.getLeaf(true);
 	await leaf.openFile(file);
-	app.workspace.setActiveLeaf(leaf, true);
+	app.workspace.setActiveLeaf(leaf, { focus: true});
 
 	// discover Excalidraw commands by name (IDs can change across versions)
 	const all = ((app as any).commands?.listCommands?.() ?? []) as Array<{ id: string; name: string }>;
@@ -327,24 +169,6 @@ async function clickExcalidrawButtons(app: App, filePath: string) {
 		await (app as any).commands.executeCommandById(convertCmd.id);
 		// give Excalidraw a tick to finish renaming to .excalidraw.md
 		await new Promise(r => setTimeout(r, 100));
-	}
-
-	// 2) "Open as Excalidraw drawing" (wording may differ a bit)
-	const openCmd =
-		pick(/open as excalidraw drawing/) ||
-		pick(/convert markdown note to excalidraw drawing/) ||
-		pick(/open existing drawing.*current active pane/);
-
-	if (openCmd) {
-		await (app as any).commands.executeCommandById(openCmd.id);
-	} else {
-		// Fallback: open the converted file directly in Excalidraw view
-		const mdPath = filePath.endsWith(".excalidraw") ? `${filePath}.md` : filePath;
-		const converted = app.vault.getAbstractFileByPath(mdPath);
-		if (converted instanceof TFile) {
-			await leaf.setViewState({ type: "excalidraw", state: { file: mdPath } });
-			app.workspace.revealLeaf(leaf);
-		}
 	}
 }
 
@@ -376,36 +200,50 @@ async function writeLectureCanvas(opts: {
 
 	await clickExcalidrawButtons(app, excalidrawPath);
 
-	// Slides placeholder (avoid "file not found" red box)
-	const slidesPlaceholderPath = `${folder}/slides.md`;
-	await app.vault.adapter.write(
-		slidesPlaceholderPath,
-		[
-			"# Slides placeholder",
-			"",
-			"Right-click this node on the Canvas → **Swap file…** → choose your `slides.pdf`.",
-			"",
-			"> Tip: keep the filename **slides.pdf** in this folder for consistency.",
-		].join("\n")
-	);
 
-	// Meta note
+	const canvasName = `${dateISO} ${slugify(title)}.canvas`;
+	const canvasPath = `${folder}/${canvasName}`;
+	const slidesPath = `${folder}/slides.pdf`;
+	const notesPath  = `${folder}/notes.excalidraw.md`;
+	const courseHubPath = `${settings.rootFolder}/${course}/${course}.md`;
+
 	const metaPath = `${folder}/_meta.md`;
 	const metaContent = [
-		"---",
+		'---',
 		`title: ${title}`,
 		`course: ${course}`,
 		`date: ${dateISO}`,
-		`tags: [course/${course}]`,
-		"---",
-		"",
-		"# Lecture notes",
-		"",
-		"- Swap **slides.md** to **slides.pdf** when available.",
-		"- Open **notes.excalidraw.md** for handwriting.",
-		"",
-	].join("\n");
+		`tags: [course/${course}, lecture]`,
+		'---',
+		'',
+		`# ${title} (${course})`,
+		'',
+		// Use full paths for uniqueness, alias for short names
+		`- [[${canvasPath}|${title}.canvas]]`,
+		`- [[${notesPath}|notes.excalidraw]]  *(appears after convert)*`,
+		`- [[${slidesPath}|slides.pdf]]`,
+		`- [[${courseHubPath}|${course} hub]]`,
+		'',
+		`> Created by Lecture Canvas plugin`,
+		''
+	].join('\n');
+
 	await app.vault.adapter.write(metaPath, metaContent);
+
+
+
+
+// --- C. add backlink from course hub to this lecture ---
+	const chFile = app.vault.getAbstractFileByPath(courseHubPath);
+	if (chFile instanceof TFile) {
+		const existing = await app.vault.read(chFile);
+		const backlink = `- [[${metaPath}|${dateISO} — ${title}]]\n`;
+		if (!existing.includes(backlink)) {
+			await app.vault.modify(chFile, existing.trimEnd() + '\n' + backlink);
+		}
+	}
+
+
 
 	// Canvas JSON
 	const CANVAS = {
@@ -427,15 +265,13 @@ async function writeLectureCanvas(opts: {
 			{
 				id: uuid(),
 				type: "file",
-				file: slidesPlaceholderPath, // placeholder (swap later)
+				file: `${folder}/slides.pdf`,
 				...settings.node.slides,
 			},
 		],
 		edges: [],
 	};
 
-	const canvasName = `${dateISO} ${slugify(title)}.canvas`;
-	const canvasPath = `${folder}/${canvasName}`;
 	await app.vault.adapter.write(canvasPath, JSON.stringify(CANVAS, null, 2));
 
 	// Open the canvas
